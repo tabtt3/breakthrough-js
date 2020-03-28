@@ -1,4 +1,4 @@
-function AppModel() {
+function AppModel(el) {
   this.val = ""
 
   this.attrs = {
@@ -52,4 +52,66 @@ AppModel.prototype.validate = function() {
 
   this.trigger( !this.errors.length ? "valid" : "invalid" )
 }
+
+
+
+function AppView(el) {
+  this.initialize(el)
+  this.handleEvents()
+console.log(this)
+}
+
+AppView.prototype.initialize = function(el) {
+  this.$el = el
+  this.$list = this.$el.next().children()
+
+  var obj = this.$el.data()
+
+  if (this.$el.prop("required")) {
+    obj["required"] = ""
+  }
+
+  this.model = new AppModel(obj)
+}
+
+AppView.prototype.handleEvents = function() {
+  var self = this
+
+  this.$el.on("keyup", function(e) {
+    self.onKeyup(e)
+  })
+
+  this.model.on("valid", function() {
+    self.onValid()
+  })
+  
+  this.model.on("invalid", function() {
+    self.onInvalid()
+  })
+}
+
+AppView.prototype.onKeyup = function(e) {
+  var $target = $(e.currentTarget)
+  this.model.set($target.val())
+} 
+
+AppView.prototype.onValid = function() {
+  this.$el.removeClass("error")
+  this.$list.hide()
+}
+
+AppView.prototype.onInvalid = function() {
+  var self = this
+
+  this.$el.addClass("error")
+  this.$list.hide()
+
+  $.each(this.model.errors, function(index, val) {
+    self.$list.filter("[data-error=\"" + val + "\"]").show()
+  })
+}
+
+$("input").each(function() {
+  new AppView($(this))
+})
 
